@@ -1,0 +1,49 @@
+name: Cherry-Pick Squashed Commit to Target Branches
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  cherry_pick_squashed_commit:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch full history to allow cherry-picking
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Parse PR Description for Target Branches
+        id: parse_branches
+        run: |
+          TARGET_BRANCHES=$(echo "${{ github.event.pull_request.body }}" | grep -oP '(?<=- \[x\] `)[^`]+')
+          echo "TARGET_BRANCHES=${TARGET_BRANCHES}" >> $GITHUB_ENV
+
+      - name: Get the Squashed Commit SHA
+        id: get_commit_sha
+        run: |
+          # Get the SHA of the merge commit (this will be the squashed commit)
+          SQUASHED_COMMIT_SHA=$(jq -r '.pull_request.merge_commit_sha' < $GITHUB_EVENT_PATH)
+          echo "SQUASHED_COMMIT_SHA=${SQUASHED_COMMIT_SHA}" >> $GITHUB_ENV
+
+      - name: Cherry-Pick Squashed Commit to Target Branches
+        run: |
+          for branch in $TARGET_BRANCHES; do
+            # Fetch and checkout the target branch
+            git fetch origin $branch
+            git checkout $branch
+            
+            # Cherry-pick the squashed commit to the target branch
+            git cherry-pick $SQUASHED_COMMIT_SHA
+
+            # Push the cherry-picked commit to the target branch
+            git push origin $branch
+          done
