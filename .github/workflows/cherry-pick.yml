@@ -29,7 +29,7 @@ jobs:
         id: parse_branches
         run: |
           # Extract checked branches from the PR description
-          branches=$(sed -n '/## 🌍 Target Branches/,/##/ s/- \[x\] \(.*\)/\1/p' pr_description.txt)
+          branches=($(sed -n '/## 🌍 Target Branches/,/##/ s/- \[x\] \(.*\)/\1/p' pr_description.txt))
           
           # Ensure that all branches are captured and output them correctly
           echo "Branches found:"
