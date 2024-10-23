@@ -28,11 +28,13 @@ jobs:
       - name: Parse selected branches
         id: parse_branches
         run: |
-          # Extract checked branches from PR description
-          branches=$(grep -oP '(?<=\[\x\]\s)[^\n\r]+' pr_description.txt | tr '\n' ' ')
+          # Extract checked branches from the PR description
+          branches=$(sed -n '/## 🌍 Target Branches/,/## ✅ Checklist/p' pr_description.txt | grep -oP '(?<=\-\s\[x\]\s)[^\n\r]+')
+          
+          # Convert branches to an array (space separated)
           echo "Extracted branches: $branches"
 
-          # Save the branches in an iterable array
+          # Save the branches in an iterable array in GITHUB_ENV
           echo "branches=[$branches]" >> $GITHUB_ENV
 
       - name: Display the branches
