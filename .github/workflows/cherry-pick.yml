@@ -21,6 +21,40 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install jq (for JSON parsing)
+        run: sudo apt-get install jq
+
+      - name: Fetch PR description
+        id: fetch_pr_body
+        run: |
+          pr_body=$(gh pr view ${{ github.event.pull_request.number }} --json body --jq '.body')
+          echo "PR Body: $pr_body"
+          echo "::set-output name=pr_body::$pr_body"
+
+      - name: Extract target branches
+        id: extract_branches
+        run: |
+          # Extract lines with selected branches from PR description
+          selected_branches=$(echo "${{ steps.fetch_pr_body.outputs.pr_body }}" | grep -oP '(?<=- \[x\] ).*')
+          branches_array=()
+          
+          # Iterate over each selected branch and store in an array
+          while read -r branch; do
+            branches_array+=("$branch")
+          done <<< "$selected_branches"
+
+          # Print out the array for verification
+          echo "Selected branches: ${branches_array[@]}"
+          
+          # Convert the array to a comma-separated string
+          branches_string=$(IFS=, ; echo "${branches_array[*]}")
+          
+          echo "::set-output name=branches_array::$branches_string"
+
+      - name: Use branches array
+        run: |
+          echo "Branches to publish changes: ${{ steps.extract_branches.outputs.branches_array }}"
+
       - name: Parse PR Description for Target Branches
         id: parse_branches
         run: |
