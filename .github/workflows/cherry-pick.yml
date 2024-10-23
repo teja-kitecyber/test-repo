@@ -82,7 +82,3 @@ jobs:
               continue
             fi
           done
-                
-                # Push the cherry-picked commit to the target branch
-                git push origin $branch
-          done
