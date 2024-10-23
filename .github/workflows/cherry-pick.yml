@@ -31,6 +31,10 @@ jobs:
           # Extract checked branches from the PR description
           branches=($(sed -n '/## 🌍 Target Branches/,/##/ s/- \[x\] \(.*\)/\1/p' pr_description.txt))
           
+          # Ensure that all branches are captured and output them correctly
+          echo "Branches found:"
+          echo "$branches"
+      
           # Convert the output to a comma-separated list for GITHUB_ENV
           branches_array=$(echo "$branches" | tr '\n' ',' | sed 's/,$//')
       
