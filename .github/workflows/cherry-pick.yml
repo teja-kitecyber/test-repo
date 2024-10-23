@@ -60,23 +60,28 @@ jobs:
         run: |
           branches=("dev" "stage" "prod")
           for branch in "${branches[@]}"; do
+            echo "Processing branch: $branch"
+            
             # Fetch and checkout the target branch
             git fetch origin $branch
             git checkout $branch
             
-          # Cherry-pick the squashed commit to the target branch
-                git cherry-pick $SQUASHED_COMMIT_SHA || true  # Prevent failure on conflicts
-                
-                # Handle potential conflicts or empty commits
-                if [ "$(git status --porcelain)" ]; then
-                  if git status | grep -q "use 'git cherry-pick --continue'"; then
-                    # Conflicts resolved, continue cherry-picking
-                    git cherry-pick --continue
-                  elif git status | grep -q "use 'git cherry-pick --skip'"; then
-                    # Cherry-pick resulted in an empty commit, skip it
-                    git cherry-pick --skip
-                  fi
-                fi
+            # Try to cherry-pick the squashed commit to the target branch
+            if git cherry-pick $SQUASHED_COMMIT_SHA; then
+              echo "Cherry-pick successful for branch: $branch"
+              
+              # Push the cherry-picked commit to the target branch
+              git push origin $branch
+            else
+              echo "Cherry-pick failed for branch: $branch due to conflicts. Skipping..."
+              
+              # Resolve any conflicts by skipping the current cherry-pick
+              git cherry-pick --abort || true
+              
+              # Continue to the next branch without breaking the loop
+              continue
+            fi
+          done
                 
                 # Push the cherry-picked commit to the target branch
                 git push origin $branch
