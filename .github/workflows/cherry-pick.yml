@@ -51,14 +51,15 @@ jobs:
 
       - name: Cherry-Pick Squashed Commit to Target Branches
         run: |
-          for branch in ${{ env.branches }}; do
+          branches=("dev" "stage" "prod")
+          for branch in "${branches[@]}"; do
             # Fetch and checkout the target branch
             git fetch origin $branch
             git checkout $branch
             
             # Cherry-pick the squashed commit to the target branch
             git cherry-pick $SQUASHED_COMMIT_SHA
-
+            
             # Push the cherry-picked commit to the target branch
             git push origin $branch
           done
