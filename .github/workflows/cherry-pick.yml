@@ -64,8 +64,20 @@ jobs:
             git fetch origin $branch
             git checkout $branch
             
-            # Cherry-pick the squashed commit to the target branch
-            git cherry-pick $SQUASHED_COMMIT_SHA
-            # Push the cherry-picked commit to the target branch
-            git push origin $branch
+          # Cherry-pick the squashed commit to the target branch
+                git cherry-pick $SQUASHED_COMMIT_SHA || true  # Prevent failure on conflicts
+                
+                # Handle potential conflicts or empty commits
+                if [ "$(git status --porcelain)" ]; then
+                  if git status | grep -q "use 'git cherry-pick --continue'"; then
+                    # Conflicts resolved, continue cherry-picking
+                    git cherry-pick --continue
+                  elif git status | grep -q "use 'git cherry-pick --skip'"; then
+                    # Cherry-pick resulted in an empty commit, skip it
+                    git cherry-pick --skip
+                  fi
+                fi
+                
+                # Push the cherry-picked commit to the target branch
+                git push origin $branch
           done
