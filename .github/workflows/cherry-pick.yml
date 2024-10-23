@@ -29,13 +29,16 @@ jobs:
         id: parse_branches
         run: |
           # Extract checked branches from the PR description
-          branches=($(sed -n '/## 🌍 Target Branches/,/##/ s/- \[x\] \(.*\)/\1/p' pr_description.txt))
+          branches=$(sed -n '/## 🌍 Target Branches/,/##/ s/- \[x\] \(.*\)/\1/p' pr_description.txt)
           
-          # Convert branches to an array (space separated)
-          echo "Extracted branches: $branches"
-
-          # Save the branches in an iterable array in GITHUB_ENV
-          echo "branches=[$branches]" >> $GITHUB_ENV
+          # Convert the output to a comma-separated list for GITHUB_ENV
+          branches_array=$(echo "$branches" | tr '\n' ',' | sed 's/,$//')
+      
+          # Print extracted branches for debugging
+          echo "Extracted branches: $branches_array"
+          
+          # Save the branches in GITHUB_ENV for later steps
+          echo "branches=[$branches_array]" >> $GITHUB_ENV
 
       - name: Display the branches
         run: |
