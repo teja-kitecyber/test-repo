@@ -5,6 +5,7 @@ on:
     types: [closed]
     branches:
       - dev
+      - cloud
 
 jobs:
   cherry_pick_squashed_commit:
