@@ -59,7 +59,6 @@ jobs:
             
             # Cherry-pick the squashed commit to the target branch
             git cherry-pick $SQUASHED_COMMIT_SHA
-            
             # Push the cherry-picked commit to the target branch
             git push origin $branch
           done
